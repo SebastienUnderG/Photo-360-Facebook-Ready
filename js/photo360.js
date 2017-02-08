@@ -1,23 +1,14 @@
 //variable
 var w ;
 var h ;
-
+var chargement = 0;
 
 function printExif(dataURL) {
     var originalImg = new Image();
     originalImg.src = dataURL;
     move(4);
-
     var exif = piexif.load(dataURL);
     var s = ""
-    /*
-    if (exif["thumbnail"]) {
-        var thumbStr = "data:image/jpeg;base64," + btoa(exif["thumbnail"]);
-        var img = "<img src='{img}'></img>".replace("{img}", thumbStr);
-        s += ("<table class='t'><tr><th class='th'>thumbnail</th></tr><tr><td>" +
-              img + "</td></tr></table><br>");
-    }
-    */
     var newDiv = $("<div class='z'></div>").html(s).hide();
     $("#output").prepend(newDiv);
 
@@ -25,26 +16,19 @@ function printExif(dataURL) {
         w = originalImg.width;
         h = originalImg.height;
         var size = $("<div></div>").text("Original size:" + w + "*" + h);
-        var im = $(originalImg).addClass("originalImage");
-        //newDiv.prepend(im);
         newDiv.prepend(size);
         resizeImage(dataURL);
     }
-
     newDiv.slideDown(1000);
-
 }
 
 
 function resizeImage(imageURLdata) {
-
   imageToDataUri(imageURLdata, function(ooo){
       console.log("resized");
       move(4);
       editphoto(ooo);
   });
-
-
 }
 
 function editphoto(evt) {
@@ -62,12 +46,9 @@ function editphoto(evt) {
 
 
 function imageToDataUri(img, callback) {
-
     var width_base = 5376;
     var height_base = 2688;
     var local_h = Math.round((h*5376)/w) ;
-
-
 
     // create an off-screen canvas
     var canvas = document.createElement('canvas'),
@@ -75,6 +56,7 @@ function imageToDataUri(img, callback) {
 
     var imgP = new Image();
     imgP.src = img;
+
     // set its dimension to target size
     canvas.width = 5376;
     canvas.height = 2688;
@@ -82,24 +64,19 @@ function imageToDataUri(img, callback) {
     // draw source image into the off-screen canvas:
     ctx.fillRect(0,0,5376,2688);
 
-    //ctx.drawImage(imgP, 0, ((2688-w)/2), 5376, 2688);
-
     if ((h/w)> .5){
       console.log("up");
-        var local_wx = Math.round((h*2688)/h) ;
-      ctx.drawImage(imgP, ((5376-local_wx)/2), 0, local_wx, 2688);
-
+      var local_width = Math.round((w*2688)/h);
+      ctx.drawImage(imgP, ((5376-local_width)/2), 0, local_width, 2688);
     }else {
-      var local_hx = Math.round((h*5376)/w) ;
-      ctx.drawImage(imgP, 0, ((2688-local_hx)/2), 5376, local_hx);
+      console.log("down");
+      var local_height = Math.round((h*5376)/w) ;
+      ctx.drawImage(imgP, 0, ((2688-local_height)/2), 5376, local_height);
     }
-
-
 
     callback(canvas.toDataURL('image/jpeg'));
     return ("exif editing");
 }
-
 
 function handleFileSelect(evt) {
     chargement = 0
@@ -112,10 +89,6 @@ function handleFileSelect(evt) {
     };
     reader.readAsDataURL(file);
 }
-
-document.getElementById('f').addEventListener('change', handleFileSelect, false);
-
-var chargement = 0
 
 function move(val) {
   var elem = document.getElementById("myBar");
@@ -133,3 +106,5 @@ function move(val) {
     }
   }
 }
+
+document.getElementById('f').addEventListener('change', handleFileSelect, false);
