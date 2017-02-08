@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8">
+      <title>Photo 360</title>
+      <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+         integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+         crossorigin="anonymous"></script>
+      <script src="js/download.min.js"></script>
+      <script src="js/piexif.js"></script>
+      <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+      <!-- Compiled and minified CSS -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+      <!-- Compiled and minified JavaScript -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+   </head>
+   <body>
+      <div id="index-banner" class="parallax-container">
+         <div class="section no-pad-bot">
+            <div class="container">
+               <br><br>
+               <h1 class="header center teal-text text-lighten-2">360° Facebook Generator </h1>
+               <div class="row center">
+                  <h5 class="header col s12 light">Choose a JPEG :</h5>
+               </div>
+               <div class="row center">
+                  <input class="btn-large waves-effect waves-light teal lighten-1" id="f" type="file" name="jpg" size="30" accept="image/jpeg" /><br>
+               </div>
+               <br><br>
+            </div>
+         </div>
+         <div class="parallax"><img src="background1.jpg" alt="Unsplashed background img 1"></div>
+      </div>
+      <div class="container">
+         <div class="section">
+            <p class="light">
+
+              <div id="myProgress">
+                <div id="myBar">
+                  <div id="label"></div>
+                </div>
+              </div>
+
+            <div id="output"></div>
+            </p>
+            <!--   Icon Section   -->
+            <div class="row">
+               <div class="col s12 m4">
+                  <div class="icon-block">
+                     <h2 class="center brown-text"><i class="material-icons">Capture</i></h2>
+                     <h5 class="center">Capturer votre environnement</h5>
+                     <p class="light">Enregistrer votre environnement avec l'appareil de votre choix en photo ou en vidéo..</p>
+                  </div>
+               </div>
+               <div class="col s12 m4">
+                  <div class="icon-block">
+                     <h2 class="center brown-text"><i class="material-icons">Editor</i></h2>
+                     <h5 class="center">Image Composite Editor</h5>
+                     <p class="light">Utilisation du logiciel de Microsoft <a href="http://research.microsoft.com/en-us/um/redmond/projects/ice/">ICE</a> permet de convertir une série d'images ou une vidéo en une image panoramique.</p>
+                  </div>
+               </div>
+               <div class="col s12 m4">
+                  <div class="icon-block">
+                     <h2 class="center brown-text"><i class="material-icons">Exif</i></h2>
+                     <h5 class="center">Modifier l'Exif et la dimension</h5>
+                     <p class="light">Ce site permet de faire ces changements automatiquement..</p>
+                     </p>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+      <footer class="page-footer teal">
+         <div class="container">
+            <div class="row">
+               <div class="col l9 s12">
+                  <h5 class="white-text">About</h5>
+                  <p class="grey-text text-lighten-4">Génerateur de fichier compatible au Photo 360 pour <a href="https://facebook360.fb.com/360-photos/">Facebook</a> entre autre.</p>
+               </div>
+               <div class="col l3 s12">
+                  <h5 class="white-text">Connect</h5>
+                  <ul>
+                     <li><a class="white-text" href="https://twitter.com/Sebastien_G">Twitter</a></li>
+                     <li><a class="white-text" href="https://github.com/SebastienUnderG/">Github</a></li>
+                     <li><a class="white-text" href="https://fr.linkedin.com/in/sebastiengestiere">LinkedIn</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+         <div class="footer-copyright">
+            <div class="container">
+               Made by Sebastien_G
+            </div>
+         </div>
+      </footer>
+      <script src="js/photo360.js"></script>
+      <script src="js/init.js"></script>
+   </body>
+</html>
