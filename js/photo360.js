@@ -38,10 +38,7 @@ function printExif(dataURL) {
 
 function resizeImage(imageURLdata) {
 
-  var local_h = Math.round((h*5376)/w) ;
-  console.log(local_h);
-
-  imageToDataUri(imageURLdata,5376,local_h, function(ooo){
+  imageToDataUri(imageURLdata, function(ooo){
       console.log("resized");
       move(4);
       editphoto(ooo);
@@ -64,7 +61,14 @@ function editphoto(evt) {
 }
 
 
-function imageToDataUri(img, width, height, callback) {
+function imageToDataUri(img, callback) {
+
+    var width_base = 5376;
+    var height_base = 2688;
+    var local_h = Math.round((h*5376)/w) ;
+
+
+
     // create an off-screen canvas
     var canvas = document.createElement('canvas'),
     ctx = canvas.getContext('2d');
@@ -72,14 +76,25 @@ function imageToDataUri(img, width, height, callback) {
     var imgP = new Image();
     imgP.src = img;
     // set its dimension to target size
-    canvas.width = width;
+    canvas.width = 5376;
     canvas.height = 2688;
 
     // draw source image into the off-screen canvas:
     ctx.fillRect(0,0,5376,2688);
-    console.log((2688-2613)/2);
 
-    ctx.drawImage(imgP, 0, ((2688-height)/2), width, height);
+    //ctx.drawImage(imgP, 0, ((2688-w)/2), 5376, 2688);
+
+    if ((h/w)> .5){
+      console.log("up");
+        var local_wx = Math.round((h*2688)/h) ;
+      ctx.drawImage(imgP, ((5376-local_wx)/2), 0, local_wx, 2688);
+
+    }else {
+      var local_hx = Math.round((h*5376)/w) ;
+      ctx.drawImage(imgP, 0, ((2688-local_hx)/2), 5376, local_hx);
+    }
+
+
 
     callback(canvas.toDataURL('image/jpeg'));
     return ("exif editing");
@@ -87,6 +102,7 @@ function imageToDataUri(img, width, height, callback) {
 
 
 function handleFileSelect(evt) {
+    chargement = 0
     console.log("on load");
     move(4);
     var file = evt.target.files[0];
