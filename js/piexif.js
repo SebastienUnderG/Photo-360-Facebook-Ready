@@ -26,7 +26,7 @@ SOFTWARE.
 (function () {
     "use strict";
     var that = {};
-
+    that.version = "1.0.4";
 
     that.remove = function (jpeg) {
         var b64 = false;
@@ -35,21 +35,16 @@ SOFTWARE.
             jpeg = atob(jpeg.split(",")[1]);
             b64 = true;
         } else {
-            throw ("Given data is not jpeg.");
+            throw new Error("Given data is not jpeg.");
         }
         
         var segments = splitIntoSegments(jpeg);
-        if (segments[1].slice(0, 2) == "\xff\xe1" && 
-               segments[1].slice(4, 10) == "Exif\x00\x00") {
-            segments = [segments[0]].concat(segments.slice(2));
-        } else if (segments[2].slice(0, 2) == "\xff\xe1" &&
-                   segments[2].slice(4, 10) == "Exif\x00\x00") {
-            segments = segments.slice(0, 2).concat(segments.slice(3));
-        } else {
-            throw("Exif not found.");
-        }
+        var newSegments = segments.filter(function(seg){
+          return  !(seg.slice(0, 2) == "\xff\xe1" &&
+                   seg.slice(4, 10) == "Exif\x00\x00"); 
+        });
         
-        var new_data = segments.join("");
+        var new_data = newSegments.join("");
         if (b64) {
             new_data = "data:image/jpeg;base64," + btoa(new_data);
         }
@@ -61,14 +56,14 @@ SOFTWARE.
     that.insert = function (exif, jpeg) {
         var b64 = false;
         if (exif.slice(0, 6) != "\x45\x78\x69\x66\x00\x00") {
-            throw ("Given data is not exif.");
+            throw new Error("Given data is not exif.");
         }
         if (jpeg.slice(0, 2) == "\xff\xd8") {
         } else if (jpeg.slice(0, 23) == "data:image/jpeg;base64," || jpeg.slice(0, 22) == "data:image/jpg;base64,") {
             jpeg = atob(jpeg.split(",")[1]);
             b64 = true;
         } else {
-            throw ("Given data is not jpeg.");
+            throw new Error("Given data is not jpeg.");
         }
 
         var exifStr = "\xff\xe1" + pack(">H", [exif.length + 2]) + exif;
@@ -92,10 +87,10 @@ SOFTWARE.
             } else if (data.slice(0, 4) == "Exif") {
                 input_data = data.slice(6);
             } else {
-                throw ("'load' gots invalid file data.");
+                throw new Error("'load' gots invalid file data.");
             }
         } else {
-            throw ("'load' gots invalid type argument.");
+            throw new Error("'load' gots invalid type argument.");
         }
 
         var exifDict = {};
@@ -183,19 +178,19 @@ SOFTWARE.
                 exif_ifd[40965] = 1;
                 interop_is = true;
                 interop_ifd = exif_dict["Interop"];
-            } else if (Object.keys(exif_ifd).indexOf(40965) > -1) {
+            } else if (Object.keys(exif_ifd).indexOf(that.ExifIFD.InteroperabilityTag.toString()) > -1) {
                 delete exif_ifd[40965];
             }
-        } else if (Object.keys(zeroth_ifd).indexOf(34665) > -1) {
+        } else if (Object.keys(zeroth_ifd).indexOf(that.ImageIFD.ExifTag.toString()) > -1) {
             delete zeroth_ifd[34665];
         }
-        
+
         if (("GPS" in exif_dict) && (Object.keys(exif_dict["GPS"]).length)) {
-            zeroth_ifd[34853] = 1;
+            zeroth_ifd[that.ImageIFD.GPSTag] = 1;
             gps_is = true;
             gps_ifd = exif_dict["GPS"];
-        } else if (Object.keys(zeroth_ifd).indexOf(34665) > -1) {
-            delete zeroth_ifd[34665];
+        } else if (Object.keys(zeroth_ifd).indexOf(that.ImageIFD.GPSTag.toString()) > -1) {
+            delete zeroth_ifd[that.ImageIFD.GPSTag];
         }
         
         if (("1st" in exif_dict) &&
@@ -205,10 +200,8 @@ SOFTWARE.
             exif_dict["1st"][513] = 1;
             exif_dict["1st"][514] = 1;
             first_ifd = exif_dict["1st"];
-        } else if (Object.keys(zeroth_ifd).indexOf(34853) > -1) {
-            delete zeroth_ifd[34853];
         }
-
+        
         var zeroth_set = _dict_to_bytes(zeroth_ifd, "0th", 0);
         var zeroth_length = (zeroth_set[0].length + exif_is * 12 + gps_is * 12 + 4 +
             zeroth_set[1].length);
@@ -245,7 +238,7 @@ SOFTWARE.
             first_set = _dict_to_bytes(first_ifd, "1st", offset);
             thumbnail = _get_thumbnail(exif_dict["thumbnail"]);
             if (thumbnail.length > 64000) {
-                throw ("Given thumbnail is too large. max 64kB");
+                throw new Error("Given thumbnail is too large. max 64kB");
             }
         }
 
@@ -495,7 +488,7 @@ SOFTWARE.
         } else if (data.slice(0, 4) == "Exif") { // Exif
             this.tiftag = data.slice(6);
         } else {
-            throw ("Given file is neither JPEG nor TIFF.");
+            throw new Error("Given file is neither JPEG nor TIFF.");
         }
     }
 
@@ -601,6 +594,15 @@ SOFTWARE.
                 } else {
                     data = value.slice(0, length);
                 }
+            } else if (t == 9) { // SLONG
+                if (length > 1) {
+                    pointer = unpack(this.endian_mark + "L", value)[0];
+                    data = unpack(this.endian_mark + nStr("l", length),
+                        this.tiftag.slice(pointer, pointer + length * 4));
+                } else {
+                    data = unpack(this.endian_mark + nStr("l", length),
+                        value);
+                }
             } else if (t == 10) { // SRATIONAL
                 pointer = unpack(this.endian_mark + "L", value)[0];
                 if (length > 1) {
@@ -620,7 +622,7 @@ SOFTWARE.
                            ];
                 }
             } else {
-                throw ("Exif might be wrong. Got incorrect value " +
+                throw new Error("Exif might be wrong. Got incorrect value " +
                     "type to decode. type:" + t);
             }
 
@@ -633,6 +635,9 @@ SOFTWARE.
     };
 
 
+    if (typeof window !== "undefined" && typeof window.btoa === "function") {
+        var btoa = window.btoa;
+    }
     if (typeof btoa === "undefined") {
         var btoa = function (input) {        var output = "";
             var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
@@ -667,6 +672,9 @@ SOFTWARE.
     }
     
     
+    if (typeof window !== "undefined" && typeof window.atob === "function") {
+        var atob = window.atob;
+    }
     if (typeof atob === "undefined") {
         var atob = function (input) {
             var output = "";
@@ -725,10 +733,10 @@ SOFTWARE.
 
     function pack(mark, array) {
         if (!(array instanceof Array)) {
-            throw ("'pack' error. Got invalid type argument.");
+            throw new Error("'pack' error. Got invalid type argument.");
         }
         if ((mark.length - 1) != array.length) {
-            throw ("'pack' error. " + (mark.length - 1) + " marks, " + array.length + " elements.");
+            throw new Error("'pack' error. " + (mark.length - 1) + " marks, " + array.length + " elements.");
         }
 
         var littleEndian;
@@ -737,7 +745,7 @@ SOFTWARE.
         } else if (mark[0] == ">") {
             littleEndian = false;
         } else {
-            throw ("");
+            throw new Error("");
         }
         var packed = "";
         var p = 1;
@@ -752,14 +760,14 @@ SOFTWARE.
                     val += 0x100;
                 }
                 if ((val > 0xff) || (val < 0)) {
-                    throw ("'pack' error.");
+                    throw new Error("'pack' error.");
                 } else {
                     valStr = String.fromCharCode(val);
                 }
             } else if (c == "H") {
                 val = array[p - 1];
                 if ((val > 0xffff) || (val < 0)) {
-                    throw ("'pack' error.");
+                    throw new Error("'pack' error.");
                 } else {
                     valStr = String.fromCharCode(Math.floor((val % 0x10000) / 0x100)) +
                         String.fromCharCode(val % 0x100);
@@ -773,7 +781,7 @@ SOFTWARE.
                     val += 0x100000000;
                 }
                 if ((val > 0xffffffff) || (val < 0)) {
-                    throw ("'pack' error.");
+                    throw new Error("'pack' error.");
                 } else {
                     valStr = String.fromCharCode(Math.floor(val / 0x1000000)) +
                         String.fromCharCode(Math.floor((val % 0x1000000) / 0x10000)) +
@@ -784,7 +792,7 @@ SOFTWARE.
                     }
                 }
             } else {
-                throw ("'pack' error.");
+                throw new Error("'pack' error.");
             }
 
             packed += valStr;
@@ -796,7 +804,7 @@ SOFTWARE.
 
     function unpack(mark, str) {
         if (typeof (str) != "string") {
-            throw ("'unpack' error. Got invalid type argument.");
+            throw new Error("'unpack' error. Got invalid type argument.");
         }
         var l = 0;
         for (var markPointer = 1; markPointer < mark.length; markPointer++) {
@@ -807,12 +815,12 @@ SOFTWARE.
             } else if (mark[markPointer].toLowerCase() == "l") {
                 l += 4;
             } else {
-                throw ("'unpack' error. Got invalid mark.");
+                throw new Error("'unpack' error. Got invalid mark.");
             }
         }
 
         if (l != str.length) {
-            throw ("'unpack' error. Mismatch between symbol and string length. " + l + ":" + str.length);
+            throw new Error("'unpack' error. Mismatch between symbol and string length. " + l + ":" + str.length);
         }
 
         var littleEndian;
@@ -821,7 +829,7 @@ SOFTWARE.
         } else if (mark[0] == ">") {
             littleEndian = false;
         } else {
-            throw ("'unpack' error.");
+            throw new Error("'unpack' error.");
         }
         var unpacked = [];
         var strPointer = 0;
@@ -861,7 +869,7 @@ SOFTWARE.
                     val -= 0x100000000;
                 }
             } else {
-                throw ("'unpack' error. " + c);
+                throw new Error("'unpack' error. " + c);
             }
 
             unpacked.push(val);
@@ -882,7 +890,7 @@ SOFTWARE.
 
     function splitIntoSegments(data) {
         if (data.slice(0, 2) != "\xff\xd8") {
-            throw ("Given data isn't JPEG.");
+            throw new Error("Given data isn't JPEG.");
         }
 
         var head = 2;
@@ -899,7 +907,7 @@ SOFTWARE.
             }
 
             if (head >= data.length) {
-                throw ("Wrong JPEG data.");
+                throw new Error("Wrong JPEG data.");
             }
         }
         return segments;
@@ -920,35 +928,32 @@ SOFTWARE.
 
 
     function mergeSegments(segments, exif) {
-        
-        if (segments[1].slice(0, 2) == "\xff\xe0" &&
-            (segments[2].slice(0, 2) == "\xff\xe1" &&
-             segments[2].slice(4, 10) == "Exif\x00\x00")) {
-            if (exif) {
-                segments[2] = exif;
-                segments = ["\xff\xd8"].concat(segments.slice(2));
-            } else if (exif == null) {
-                segments = segments.slice(0, 2).concat(segments.slice(3));
-            } else {
-                segments = segments.slice(0).concat(segments.slice(2));
+        var hasExifSegment = false;
+        var additionalAPP1ExifSegments = [];
+
+        segments.forEach(function(segment, i) {
+            // Replace first occurence of APP1:Exif segment
+            if (segment.slice(0, 2) == "\xff\xe1" &&
+                segment.slice(4, 10) == "Exif\x00\x00"
+            ) {
+                if (!hasExifSegment) {
+                    segments[i] = exif;
+                    hasExifSegment = true;
+                } else {
+                    additionalAPP1ExifSegments.unshift(i);
+                }
             }
-        } else if (segments[1].slice(0, 2) == "\xff\xe0") {
-            if (exif) {
-                segments[1] = exif;
-            }
-        } else if (segments[1].slice(0, 2) == "\xff\xe1" &&
-                   segments[1].slice(4, 10) == "Exif\x00\x00") {
-            if (exif) {
-                segments[1] = exif;
-            } else if (exif == null) {
-                segments = segments.slice(0).concat(segments.slice(2));
-            }
-        } else {
-            if (exif) {
-                segments = [segments[0], exif].concat(segments.slice(1));
-            }
+        });
+
+        // Remove additional occurences of APP1:Exif segment
+        additionalAPP1ExifSegments.forEach(function(segmentIndex) {
+            segments.splice(segmentIndex, 1);
+        });
+
+        if (!hasExifSegment && exif) {
+            segments = [segments[0], exif].concat(segments.slice(1));
         }
-        
+
         return segments.join("");
     }
 
@@ -2440,6 +2445,28 @@ SOFTWARE.
 
     that.InteropIFD = {
         InteroperabilityIndex:1,
+    };
+
+    that.GPSHelper = {
+        degToDmsRational:function (degFloat) {
+            var degAbs = Math.abs(degFloat);
+            var minFloat = degAbs % 1 * 60;
+            var secFloat = minFloat % 1 * 60;
+            var deg = Math.floor(degAbs);
+            var min = Math.floor(minFloat);
+            var sec = Math.round(secFloat * 100);
+
+            return [[deg, 1], [min, 1], [sec, 100]];
+        },
+
+        dmsRationalToDeg:function (dmsArray, ref) {
+            var sign = (ref === 'S' || ref === 'W') ? -1.0 : 1.0;
+            var deg = dmsArray[0][0] / dmsArray[0][1] +
+                      dmsArray[1][0] / dmsArray[1][1] / 60.0 +
+                      dmsArray[2][0] / dmsArray[2][1] / 3600.0;
+
+            return deg * sign;
+        }
     };
     
     
