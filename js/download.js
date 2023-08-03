@@ -24,7 +24,7 @@
 
 	return function download(data, strFileName, strMimeType) {
 
-		var self = window, // this script is only for browsers anyway...
+		let self = window, // this script is only for browsers anyway...
 			defaultMime = "application/octet-stream", // this default mime also triggers iframe downloads
 			mimeType = strMimeType || defaultMime,
 			payload = data,

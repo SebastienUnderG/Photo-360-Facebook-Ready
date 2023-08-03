@@ -1,103 +1,150 @@
-// variable
-let w;
-let h;
-let chargement = 0;
+// Variables globales
+let w; // Largeur de l'image originale
+let h; // Hauteur de l'image originale
+let chargement = 0; // Variable pour la barre de progression
 
-function printExif(dataURL) {
-    let originalImg = new Image();
+// Fonction pour afficher les informations Exif de l'image
+const printExif = (dataURL) => {
+    // Créer une nouvelle image et charger l'image à partir des données URL
+    const originalImg = new Image();
     originalImg.src = dataURL;
+
+    // Mettre à jour la barre de progression pour indiquer le chargement de l'image
     move(4);
-    let exif = piexif.load(dataURL);
-    let s = "";
-    let newDiv = $("<div class='z'></div>").html(s).hide();
+
+    // Charger les données Exif de l'image
+    const exif = piexif.load(dataURL);
+
+    // Créer un élément de div pour afficher les informations Exif (masqué initialement)
+    const newDiv = $("<div class='z'></div>").html('').hide();
     $("#output").prepend(newDiv);
 
-    originalImg.onload = function () {
+    // Une fois l'image chargée, récupérer sa largeur et sa hauteur
+    originalImg.onload = () => {
         w = originalImg.width;
         h = originalImg.height;
-        let size = $("<div></div>").text("Original size:" + w + "*" + h);
+
+        // Afficher les dimensions originales de l'image
+        const size = $(`<div>Original size: ${w} * ${h}</div>`);
         newDiv.prepend(size);
+
+        // Redimensionner l'image pour la préparation à la génération Facebook 360
         resizeImage(dataURL);
     };
+
+    // Faire apparaitre le div contenant les informations Exif avec une animation de glissement
     newDiv.slideDown(1000);
-}
+};
 
-
-function resizeImage(imageURLdata) {
-    imageToDataUri(imageURLdata, function (image) {
-        console.log("resized");
+// Fonction pour redimensionner l'image à la taille requise pour Facebook 360
+const resizeImage = (imageURLdata) => {
+    // Appeler la fonction imageToDataUri pour redimensionner l'image
+    imageToDataUri(imageURLdata, (image) => {
+        // Mettre à jour la barre de progression pour indiquer le redimensionnement
         move(4);
+        // Appeler la fonction editphoto pour éditer l'image (ajouter les Exif, etc.)
         editphoto(image);
     });
-}
+};
 
-function editphoto(evt) {
-    let zeroth = {};
-    zeroth[piexif.ImageIFD.Make] = "RICOH";
-    zeroth[piexif.ImageIFD.Model] = "Ricoh Theta S";
-    zeroth[piexif.ImageIFD.Software] = "360_Sebastien_G";
-    let exifObj = {"0th": zeroth};
-    let exifbytes = piexif.dump(exifObj);
-    let inserted = piexif.insert(exifbytes, evt);
+// Fonction pour éditer l'image en ajoutant les informations Exif
+const editphoto = (evt) => {
+    // Créer un objet Exif avec les informations requises (fabricant, modèle, logiciel)
+    const zeroth = {
+        [piexif.ImageIFD.Make]: "RICOH",
+        [piexif.ImageIFD.Model]: "Ricoh Theta S",
+        [piexif.ImageIFD.Software]: "360_Sebastien_G"
+    };
+    const exifObj = { "0th": zeroth };
+
+    // Convertir les informations Exif en octets
+    const exifbytes = piexif.dump(exifObj);
+
+    // Insérer les informations Exif dans l'image redimensionnée
+    const inserted = piexif.insert(exifbytes, evt);
+
+    // Télécharger l'image avec les informations Exif ajoutées
     download(inserted, "FacebookPhoto360Ready.jpeg", "image/jpeg");
+
+    // Mettre à jour la barre de progression pour indiquer la fin du traitement
     move(4);
+
+    // Renvoyer un message indiquant que l'image a été redimensionnée et éditée
     return "resize";
-}
+};
 
-
-function imageToDataUri(img, callback) {
+// Fonction pour redimensionner l'image à une taille spécifique
+const imageToDataUri = (img, callback) => {
+    // Dimensions de base pour Facebook 360
     const width_base = 5376;
     const height_base = 2688;
-    let local_h = Math.round((h * width_base) / w);
 
-    // create an off-screen canvas
-    let canvas = document.createElement('canvas'),
-        ctx = canvas.getContext('2d');
+    // Calculer la hauteur locale en conservant le ratio d'aspect de l'image originale
+    const local_h = Math.round((h * width_base) / w);
 
-    let imgP = new Image();
+    // Créer un canvas hors écran
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const imgP = new Image();
     imgP.src = img;
 
-    // set its dimension to target size
+    // Définir les dimensions du canvas à la taille cible
     canvas.width = width_base;
     canvas.height = height_base;
 
-    // draw source image into the off-screen canvas:
+    // Dessiner l'image source sur le canvas
     ctx.fillRect(0, 0, width_base, height_base);
 
     if ((h / w) > .5) {
+        // Si l'image est plus haute que large
         console.log("up");
-        let local_width = Math.round((w * height_base) / h);
+        const local_width = Math.round((w * height_base) / h);
         ctx.drawImage(imgP, ((width_base - local_width) / 2), 0, local_width, height_base);
     } else {
+        // Si l'image est plus large que haute
         console.log("down");
-        let local_height = Math.round((h * width_base) / w);
+        const local_height = Math.round((h * width_base) / w);
         ctx.drawImage(imgP, 0, ((height_base - local_height) / 2), width_base, local_height);
     }
 
+    // Appeler la fonction de rappel avec l'URL de données de l'image redimensionnée
     callback(canvas.toDataURL('image/jpeg'));
-    return ("exif editing");
-}
 
-function handleFileSelect(evt) {
+    // Renvoyer un message indiquant que l'édition des Exif a été effectuée
+    return "exif editing";
+};
+
+// Fonction pour gérer la sélection de fichier
+const handleFileSelect = (evt) => {
+    // Réinitialiser le chargement à 0
     chargement = 0;
     console.log("on load");
+
+    // Mettre à jour la barre de progression pour indiquer le chargement du fichier
     move(4);
-    let file = evt.target.files[0];
-    let reader = new FileReader();
-    reader.onloadend = function (e) {
+
+    // Récupérer le fichier sélectionné
+    const file = evt.target.files[0];
+
+    // Créer un lecteur de fichier pour lire les données du fichier sélectionné
+    const reader = new FileReader();
+
+    // Lorsque la lecture est terminée, appeler la fonction printExif pour afficher les informations Exif
+    reader.onloadend = (e) => {
         printExif(e.target.result);
     };
+
+    // Lire le contenu du fichier sous forme d'URL de données
     reader.readAsDataURL(file);
-}
+};
 
-function move(val) {
-    let elem = document.getElementById("myBar");
-    let marche = (100 / val);
+// Fonction pour mettre à jour la barre de progression
+const move = (val) => {
+    const elem = document.getElementById("myBar");
+    const marche = (100 / val);
     let width = marche * chargement;
-    let id = setInterval(frame, 10);
-    chargement = chargement + marche;
-
-    function frame() {
+    const id = setInterval(() => {
         if (width >= 100) {
             clearInterval(id);
         } else {
@@ -105,7 +152,9 @@ function move(val) {
             elem.style.width = width + '%';
             document.getElementById("label").innerHTML = width + '%';
         }
-    }
-}
+    }, 10);
+    chargement = chargement + marche;
+};
 
-document.getElementById('f').addEventListener('change', handleFileSelect, false);
+// Écouter l'événement de changement de fichier et appeler la fonction handleFileSelect
+document.getElementById('fileInput').addEventListener('change', handleFileSelect, false);

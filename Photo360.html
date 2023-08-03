@@ -3,90 +3,108 @@
 <head>
     <meta charset="utf-8">
     <title>Photo 360</title>
-    <script
-            src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-            integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs="
+    <!-- External libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
+            integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI"
             crossorigin="anonymous"></script>
     <script src="js/download.min.js"></script>
     <script src="js/piexif.min.js"></script>
-    <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
-    <!-- Compiled and minified CSS -->
+    <!-- Materialize CSS framework -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-    <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <!-- Custom CSS -->
+    <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection">
 </head>
 <body>
+<!-- Photo 360° Generator Banner -->
 <div id="index-banner" class="parallax-container">
     <div class="section no-pad-bot">
         <div class="container">
             <br><br>
-            <h1 class="header center teal-text text-lighten-2">
-                <mark>360° Facebook Generator</mark>
-            </h1>
+            <!-- Title -->
+<h1 class="header center teal-text text-lighten-2">360° Facebook Generator </h1>
             <div class="row center">
-                <h5 class="header col s12 light">Choose a JPEG :</h5>
+                <!-- Subtitle -->
+                <h5 class="header col s12 light">Choose a JPEG:</h5>
             </div>
             <div class="row center">
-                <input class="btn-large waves-effect waves-light teal lighten-1" id="f" type="file" name="jpg" size="30"
-                       accept="image/jpeg"/><br>
-
+                <!-- File Input -->
+                <input class="btn-large waves-effect waves-light teal lighten-1" id="fileInput" type="file" name="jpg"
+                       size="30" accept="image/jpeg"><br>
             </div>
             <br><br>
         </div>
     </div>
-    <div class="parallax"><img src="background1.jpg" alt="background img 1"></div>
+    <div class="parallax"><img src="background1.jpg" alt="Background Image 1"></div>
 </div>
+
+<!-- Main Content Section -->
 <div class="container">
     <div class="section">
         <p class="light">
-
-        <div id="myProgress">
-            <div id="myBar">
-                <div id="label"></div>
+            <!-- Progress Bar -->
+            <div id="myProgress">
+                <div id="myBar">
+                    <div id="label"></div>
+                </div>
             </div>
-        </div>
 
-        <div id="output"></div>
+            <!-- Output Display -->
+            <div id="output"></div>
         </p>
-        <!--   Icon Section   -->
+
+        <!-- Icon Section -->
         <div class="row">
             <div class="col s12 m4">
-                <div class="icon-block">
-                    <h2 class="center brown-text"><i class="material-icons">Capture</i></h2>
-                    <h5 class="center">Capturer votre environnement</h5>
-                    <p class="light">Enregistrer votre environnement avec l'appareil de votre choix en photo ou en
-                        vidéo..</p>
-                </div>
-            </div>
-            <div class="col s12 m4">
-                <div class="icon-block">
-                    <h2 class="center brown-text"><i class="material-icons">Editor</i></h2>
-                    <h5 class="center">Image Composite Editor</h5>
-                    <p class="light">Utilisation du logiciel de Microsoft <a
-                            href="http://research.microsoft.com/en-us/um/redmond/projects/ice/">ICE</a> permet de
-                        convertir une série d'images ou une vidéo en une image panoramique.</p>
-                </div>
-            </div>
-            <div class="col s12 m4">
-                <div class="icon-block">
-                    <h2 class="center brown-text"><i class="material-icons">Exif</i></h2>
-                    <h5 class="center">Modifier l'Exif et la dimension</h5>
-                    <p class="light">Ce site permet de faire ces changements automatiquement..</p>
-                    </p>
-                </div>
-            </div>
+    <div class="icon-block">
+        <!-- Camera Icon -->
+        <h2 class="center brown-text"><i class="material-icons">Capture</i></h2>
+        <h5 class="center">Capture Your Environment</h5>
+        <p class="light">
+            Record your surroundings using the camera or video recording of your choice.
+        </p>
+    </div>
+</div>
+<div class="col s12 m4">
+    <div class="icon-block">
+        <!-- Image Icon -->
+        <h2 class="center brown-text"><i class="material-icons">Editor</i></h2>
+        <h5 class="center">Image Stitching</h5>
+        <p class="light">
+            Utilize image stitching software to convert a series of images into a panoramic view.
+            <br>
+            <strong>Note:</strong> Microsoft's Image Composite Editor (ICE) is now considered obsolete. Please explore other modern alternatives.
+        </p>
+    </div>
+</div>
+<div class="col s12 m4">
+    <div class="icon-block">
+        <!-- Settings Icon -->
+        <h2 class="center brown-text"><i class="material-icons">Exif</i></h2>
+        <h5 class="center">Modify Exif and Dimensions</h5>
+        <p class="light">
+            This website allows you to make changes to the image's Exif metadata and dimensions automatically.
+        </p>
+    </div>
+</div>
         </div>
     </div>
 </div>
+
+<!-- Footer Section -->
 <footer class="page-footer teal">
     <div class="container">
         <div class="row">
             <div class="col l9 s12">
+                <!-- About Section -->
                 <h5 class="white-text">About</h5>
-                <p class="grey-text text-lighten-4">Génerateur de fichier compatible au Photo 360 pour <a
-                        href="https://facebook360.fb.com/360-photos/">Facebook</a> entre autre.</p>
+                <p class="grey-text text-lighten-4">
+                    File generator compatible with <a href="https://facebook360.fb.com/360-photos/">Facebook 360</a>
+                    and other platforms for creating immersive 360-degree photos and experiences.
+                </p>
             </div>
             <div class="col l3 s12">
+                <!-- Connect Section -->
                 <h5 class="white-text">Connect</h5>
                 <ul>
                     <li><a class="white-text" href="https://twitter.com/Sebastien_G">Twitter</a></li>
@@ -102,6 +120,8 @@
         </div>
     </div>
 </footer>
+
+<!-- Custom JavaScript -->
 <script src="js/photo360.js"></script>
 <script src="js/init.js"></script>
 </body>
